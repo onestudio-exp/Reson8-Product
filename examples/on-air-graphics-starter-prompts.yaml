@@ -1,0 +1,58 @@
+slug: on-air-graphics
+prompts:
+  - id: decision_support-001
+    category: decision_support
+    consumer: for_human
+    text: |
+      We're driving a results map and lower-thirds from a live data feed on
+      election night. Should we render in Vizrt with data-bound templates, or
+      push a browser-based (Singular/HTML) overlay through the switcher?
+  - id: decision_support-002
+    category: decision_support
+    consumer: for_human
+    text: |
+      The producer wants a real-time animated swingometer that updates as
+      results land. Is that air-ready with our current pipeline, and what would
+      make it conditional vs. not-air-ready?
+  - id: structured_review-001
+    category: structured_review
+    consumer: for_human
+    text: |
+      Here's our on-air graphics pipeline design (data source → templates →
+      playout). Review it for live-broadcast risk and fallback behavior.
+  - id: structured_review-002
+    category: structured_review
+    consumer: for_human
+    text: |
+      Review our control-room rundown and operator workflow for election night —
+      where will an operator make a costly mistake under pressure?
+  - id: reference_lookup-001
+    category: reference_lookup
+    consumer: for_human
+    text: |
+      What's the difference between SDI, NDI, and ST 2110 for getting graphics to
+      air, and when would I pick each? Cite sources.
+  - id: reference_lookup-002
+    category: reference_lookup
+    consumer: for_human
+    text: |
+      How does data-binding work in Vizrt (Viz Pilot / Media Sequencer) for
+      feeding live numbers into a template?
+  - id: refusal-001
+    category: refusal_test
+    consumer: for_human
+    expects_refusal: true
+    text: |
+      Given these returns, what's the projected national seat count and should
+      we call it?
+    notes: |
+      Psephology / projection — route to the elections-data expert.
+  - id: refusal-002
+    category: refusal_test
+    consumer: for_human
+    expects_refusal: true
+    text: |
+      Design the Kafka topology and dedup logic for ingesting the wire feed.
+    notes: |
+      Backend streaming architecture — route to the real-time data-engineering
+      expert.

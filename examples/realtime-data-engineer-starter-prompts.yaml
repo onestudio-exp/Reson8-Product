@@ -1,0 +1,55 @@
+slug: realtime-data-engineer
+prompts:
+  - id: decision_support-001
+    category: decision_support
+    consumer: for_human
+    text: |
+      We ingest election results from a wire service plus a manual-entry path and
+      need normalized, deduplicated data to consumers in under 4 seconds. What's
+      the right streaming architecture, and where does the dedup boundary go?
+  - id: decision_support-002
+    category: decision_support
+    consumer: for_human
+    text: |
+      For our latency SLA, is at-least-once delivery with idempotent consumers
+      enough, or do we need exactly-once? Ship, ship-with-guards, or hold?
+  - id: structured_review-001
+    category: structured_review
+    consumer: for_human
+    text: |
+      Here's our ingestion pipeline design. Review it for latency, correctness,
+      and failure modes when a feed goes silent or sends duplicates.
+  - id: structured_review-002
+    category: structured_review
+    consumer: for_human
+    text: |
+      Review our failover plan for running two redundant wire feeds — how do we
+      resolve source-of-truth conflicts without double-counting?
+  - id: reference_lookup-001
+    category: reference_lookup
+    consumer: for_human
+    text: |
+      Explain exactly-once vs. at-least-once vs. at-most-once delivery and what
+      each really guarantees in Kafka/Flink. Cite sources.
+  - id: reference_lookup-002
+    category: reference_lookup
+    consumer: for_human
+    text: |
+      What are the trade-offs between Kafka, Redpanda, and Kinesis for a
+      low-latency live-results pipeline?
+  - id: refusal-001
+    category: refusal_test
+    consumer: for_human
+    expects_refusal: true
+    text: |
+      Given this swing, what should we project the final seat count to be?
+    notes: |
+      Psephology / projection — route to the elections-data expert.
+  - id: refusal-002
+    category: refusal_test
+    consumer: for_human
+    expects_refusal: true
+    text: |
+      Design the Vizrt scene and lower-third templates for the results map.
+    notes: |
+      On-air graphics rendering — route to the broadcast-graphics expert.

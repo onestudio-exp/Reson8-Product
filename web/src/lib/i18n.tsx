@@ -47,27 +47,65 @@ const DICT: Dict = {
   },
   "setup.tab.elections": { en: "Elections", ar: "الانتخابات" },
   "setup.tab.parties": { en: "Parties", ar: "الأحزاب" },
+  "setup.tab.coalitions": { en: "Coalitions", ar: "الائتلافات" },
   "setup.tab.candidates": { en: "Candidates", ar: "المرشحون" },
   "setup.tab.constituencies": { en: "Constituencies", ar: "الدوائر" },
 
   // Fields
   "field.country": { en: "Country", ar: "الدولة" },
-  "field.type": { en: "System", ar: "النظام" },
+  "field.type": { en: "Type", ar: "النوع" },
+  "field.system": { en: "Electoral system", ar: "النظام الانتخابي" },
   "field.date": { en: "Date", ar: "التاريخ" },
   "field.seats": { en: "Seats", ar: "المقاعد" },
-  "field.rule": { en: "Electoral rule", ar: "القاعدة الانتخابية" },
   "field.status": { en: "Status", ar: "الحالة" },
   "field.rounds": { en: "Rounds", ar: "الجولات" },
   "field.party": { en: "Party", ar: "الحزب" },
   "field.acronym": { en: "Acronym", ar: "الاختصار" },
   "field.leader": { en: "Leader", ar: "الزعيم" },
   "field.color": { en: "Colour", ar: "اللون" },
-  "field.target": { en: "Seat target", ar: "المقاعد المستهدفة" },
+  "field.bloc": { en: "Bloc", ar: "الكتلة" },
+  "field.members": { en: "Member parties", ar: "الأحزاب الأعضاء" },
   "field.name": { en: "Name", ar: "الاسم" },
   "field.district": { en: "District", ar: "الدائرة" },
-  "field.position": { en: "Position", ar: "المنصب" },
-  "field.region": { en: "Region", ar: "المنطقة" },
+  "field.election": { en: "Election", ar: "الانتخابات" },
+  "field.ballot": { en: "Ballot #", ar: "الترتيب" },
+  "field.region": { en: "Parent region", ar: "المنطقة الأم" },
   "field.voters": { en: "Registered voters", ar: "الناخبون المسجلون" },
+
+  // Values
+  "value.unaligned": { en: "Unaligned", ar: "غير منتمٍ" },
+  "value.independent": { en: "Independent", ar: "مستقل" },
+  "value.nationalList": { en: "National list", ar: "القائمة الوطنية" },
+  "value.multiMember": { en: "Multi-member", ar: "متعدد المقاعد" },
+  "value.singleMember": { en: "Single-member", ar: "مقعد واحد" },
+
+  // Wizard — electoral system
+  "field.family": { en: "Family", ar: "العائلة" },
+  "field.formula": { en: "Formula", ar: "الصيغة" },
+  "field.threshold": { en: "Threshold %", ar: "نسبة العتبة" },
+  "field.majority": { en: "Majority rule", ar: "قاعدة الأغلبية" },
+  "value.plurality": { en: "Plurality", ar: "الأغلبية النسبية" },
+  "value.absolute": { en: "Absolute majority", ar: "الأغلبية المطلقة" },
+
+  // Electoral formulas (localized labels for the system column)
+  "formula.FPTP": { en: "First-past-the-post", ar: "الفائز الأول" },
+  "formula.TwoRound": { en: "Two-round runoff", ar: "جولتان (إعادة)" },
+  "formula.DHondt": { en: "Proportional (D'Hondt)", ar: "نسبي (دي هونت)" },
+  "formula.SainteLague": { en: "Proportional (Sainte-Laguë)", ar: "نسبي (سانت لاغو)" },
+  "system.threshold": { en: "threshold", ar: "عتبة" },
+
+  // Election types (chambers)
+  "type.Presidency": { en: "Presidency", ar: "رئاسية" },
+  "type.Parliament": { en: "Parliament", ar: "مجلس النواب" },
+  "type.Senate": { en: "Senate", ar: "مجلس الشيوخ" },
+  "wizard.runoffNote": {
+    en: "Absolute majority adds a second round (Runoff) automatically.",
+    ar: "الأغلبية المطلقة تضيف جولة ثانية (الإعادة) تلقائيًا.",
+  },
+  "wizard.senateNote": {
+    en: "This country is bicameral — Senate elections are available.",
+    ar: "هذه الدولة ذات مجلسين — انتخابات مجلس الشيوخ متاحة.",
+  },
 
   "action.newElection": { en: "New Election", ar: "انتخابات جديدة" },
   "wizard.title": { en: "Election Configuration Wizard", ar: "معالج إعداد الانتخابات" },
@@ -82,6 +120,7 @@ const DICT: Dict = {
   "common.summary": { en: "Summary", ar: "ملخص" },
   "common.elections": { en: "Elections", ar: "الانتخابات" },
   "common.parties": { en: "Parties", ar: "الأحزاب" },
+  "common.coalitions": { en: "Coalitions", ar: "الائتلافات" },
   "common.candidates": { en: "Candidates", ar: "المرشحون" },
   "common.constituencies": { en: "Constituencies", ar: "الدوائر" },
 };

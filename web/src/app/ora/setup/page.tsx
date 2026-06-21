@@ -11,12 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -29,10 +24,16 @@ import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/status-badge";
 import { ElectionWizard } from "./election-wizard";
 import { useI18n } from "@/lib/i18n";
+import type { ElectoralSystem } from "@/lib/types";
 import {
-  candidates as allCandidates,
+  candidaciesByCountry,
+  candidateById,
+  coalitionById,
+  coalitionsByCountry,
+  constituencyById,
   constituencies as allConstituencies,
   countries,
+  electionById,
   elections as allElections,
   parties as allParties,
   partyById,
@@ -44,23 +45,46 @@ export default function SetupPage() {
   const { t, lang } = useI18n();
   const [country, setCountry] = useState<string>("all");
 
-  const scope = (cid: string) => country === "all" || cid === country;
+  const inScope = (cid: string) => country === "all" || cid === country;
+  // Localized name picker
+  const L = (en: string, ar: string) => (lang === "ar" ? ar : en);
 
-  const elections = useMemo(() => allElections.filter((e) => scope(e.countryId)), [country]);
-  const parties = useMemo(() => allParties.filter((p) => scope(p.countryId)), [country]);
-  const candidates = useMemo(() => allCandidates.filter((c) => scope(c.countryId)), [country]);
-  const constituencies = useMemo(() => allConstituencies.filter((c) => scope(c.countryId)), [country]);
+  const elections = useMemo(() => allElections.filter((e) => inScope(e.countryId)), [country]);
+  const parties = useMemo(() => allParties.filter((p) => inScope(p.countryId)), [country]);
+  const coalitions = useMemo(
+    () => countries.flatMap((c) => (inScope(c.id) ? coalitionsByCountry(c.id) : [])),
+    [country],
+  );
+  const candidacies = useMemo(
+    () => countries.flatMap((c) => (inScope(c.id) ? candidaciesByCountry(c.id) : [])),
+    [country],
+  );
+  const constituencies = useMemo(
+    () => allConstituencies.filter((c) => inScope(c.countryId)),
+    [country],
+  );
 
-  const countryName = (id: string) => {
+  const candidateCount = useMemo(
+    () => new Set(candidacies.map((cy) => cy.candidateId)).size,
+    [candidacies],
+  );
+
+  const countryLabel = (id: string) => {
     const c = countries.find((x) => x.id === id);
-    if (!c) return id;
-    return `${c.flag} ${lang === "ar" ? c.nameAr : c.name}`;
+    return c ? `${c.flag} ${L(c.name, c.nameAr)}` : id;
+  };
+
+  // Localized electoral-system label (avoids English-only displayLabel in Arabic)
+  const systemLabel = (s: ElectoralSystem) => {
+    const base = t(`formula.${s.formula}`);
+    return s.thresholdPct ? `${base} · ${s.thresholdPct}% ${t("system.threshold")}` : base;
   };
 
   const stats = [
     { key: "common.elections", value: elections.length },
     { key: "common.parties", value: parties.length },
-    { key: "common.candidates", value: candidates.length },
+    { key: "common.coalitions", value: coalitions.length },
+    { key: "common.candidates", value: candidateCount },
     { key: "common.constituencies", value: constituencies.length },
   ];
 
@@ -75,13 +99,17 @@ export default function SetupPage() {
         <div className="flex items-center gap-2">
           <Select value={country} onValueChange={(v) => setCountry(v ?? "all")}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue />
+              <SelectValue>
+                {(val: string | null) =>
+                  val && val !== "all" ? countryLabel(val) : t("common.allCountries")
+                }
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("common.allCountries")}</SelectItem>
               {countries.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
-                  {c.flag} {lang === "ar" ? c.nameAr : c.name}
+                  {c.flag} {L(c.name, c.nameAr)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -98,7 +126,7 @@ export default function SetupPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {stats.map((s) => (
           <Card key={s.key}>
             <CardContent className="py-4">
@@ -111,9 +139,10 @@ export default function SetupPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="elections" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-grid sm:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-grid sm:grid-cols-5">
           <TabsTrigger value="elections">{t("setup.tab.elections")}</TabsTrigger>
           <TabsTrigger value="parties">{t("setup.tab.parties")}</TabsTrigger>
+          <TabsTrigger value="coalitions">{t("setup.tab.coalitions")}</TabsTrigger>
           <TabsTrigger value="candidates">{t("setup.tab.candidates")}</TabsTrigger>
           <TabsTrigger value="constituencies">{t("setup.tab.constituencies")}</TabsTrigger>
         </TabsList>
@@ -127,9 +156,9 @@ export default function SetupPage() {
                   <TableRow>
                     <TableHead>{t("field.country")}</TableHead>
                     <TableHead>{t("field.type")}</TableHead>
+                    <TableHead>{t("field.system")}</TableHead>
                     <TableHead>{t("field.date")}</TableHead>
                     <TableHead className="text-end">{t("field.seats")}</TableHead>
-                    <TableHead>{t("field.rule")}</TableHead>
                     <TableHead className="text-end">{t("field.rounds")}</TableHead>
                     <TableHead>{t("field.status")}</TableHead>
                   </TableRow>
@@ -137,11 +166,11 @@ export default function SetupPage() {
                 <TableBody>
                   {elections.map((e) => (
                     <TableRow key={e.id}>
-                      <TableCell className="font-medium">{countryName(e.countryId)}</TableCell>
-                      <TableCell>{e.type}</TableCell>
+                      <TableCell className="font-medium">{countryLabel(e.countryId)}</TableCell>
+                      <TableCell>{t(`type.${e.type}`)}</TableCell>
+                      <TableCell className="text-muted-foreground">{systemLabel(e.system)}</TableCell>
                       <TableCell className="tabular-nums">{e.date}</TableCell>
                       <TableCell className="text-end tabular-nums">{nf.format(e.seatCount)}</TableCell>
-                      <TableCell className="max-w-[260px] text-muted-foreground">{e.electoralRule}</TableCell>
                       <TableCell className="text-end tabular-nums">{e.rounds.length}</TableCell>
                       <TableCell><StatusBadge status={e.status} /></TableCell>
                     </TableRow>
@@ -163,73 +192,38 @@ export default function SetupPage() {
                     <TableHead>{t("field.acronym")}</TableHead>
                     <TableHead>{t("field.country")}</TableHead>
                     <TableHead>{t("field.leader")}</TableHead>
+                    <TableHead>{t("field.bloc")}</TableHead>
                     <TableHead>{t("field.color")}</TableHead>
-                    <TableHead className="text-end">{t("field.target")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {parties.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-medium">
-                        <span className="me-2">{p.symbol}</span>
-                        {p.name}
-                      </TableCell>
-                      <TableCell><Badge variant="secondary">{p.acronym}</Badge></TableCell>
-                      <TableCell>{countryName(p.countryId)}</TableCell>
-                      <TableCell>{p.leader}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="inline-block h-4 w-4 rounded-full border"
-                            style={{ backgroundColor: p.color }}
-                          />
-                          <span className="text-xs text-muted-foreground tabular-nums">{p.color}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-end tabular-nums">{nf.format(p.seatsTarget)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Candidates */}
-        <TabsContent value="candidates">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("field.name")}</TableHead>
-                    <TableHead>{t("field.party")}</TableHead>
-                    <TableHead>{t("field.district")}</TableHead>
-                    <TableHead>{t("field.position")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {candidates.map((c) => {
-                    const p = partyById(c.partyId);
+                  {parties.map((p) => {
+                    const bloc = coalitionById(p.coalitionId);
                     return (
-                      <TableRow key={c.id}>
+                      <TableRow key={p.id}>
                         <TableCell className="font-medium">
-                          <span className="me-2 text-lg">{c.photo}</span>
-                          {c.name}
+                          <span className="me-2">{p.symbol}</span>
+                          {L(p.name, p.nameAr)}
                         </TableCell>
+                        <TableCell><Badge variant="secondary">{p.acronym}</Badge></TableCell>
+                        <TableCell>{countryLabel(p.countryId)}</TableCell>
+                        <TableCell>{p.leader}</TableCell>
                         <TableCell>
-                          {p && (
+                          {bloc ? (
                             <span className="inline-flex items-center gap-1.5">
-                              <span
-                                className="inline-block h-2.5 w-2.5 rounded-full"
-                                style={{ backgroundColor: p.color }}
-                              />
-                              {p.acronym}
+                              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: bloc.color }} />
+                              {L(bloc.name, bloc.nameAr)}
                             </span>
+                          ) : (
+                            <span className="text-muted-foreground">{t("value.unaligned")}</span>
                           )}
                         </TableCell>
-                        <TableCell>{c.district}</TableCell>
-                        <TableCell className="text-muted-foreground">{c.position}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="inline-block h-4 w-4 rounded-full border" style={{ backgroundColor: p.color }} />
+                            <span className="text-xs text-muted-foreground tabular-nums">{p.color}</span>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -239,7 +233,101 @@ export default function SetupPage() {
           </Card>
         </TabsContent>
 
-        {/* Constituencies */}
+        {/* Coalitions (read-only bloc display) */}
+        <TabsContent value="coalitions">
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("field.bloc")}</TableHead>
+                    <TableHead>{t("field.country")}</TableHead>
+                    <TableHead>{t("field.color")}</TableHead>
+                    <TableHead>{t("field.members")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {coalitions.map((co) => (
+                    <TableRow key={co.id}>
+                      <TableCell className="font-medium">
+                        <span className="me-2 inline-block h-3 w-3 rounded-sm align-middle" style={{ backgroundColor: co.color }} />
+                        {L(co.name, co.nameAr)}
+                      </TableCell>
+                      <TableCell>{countryLabel(co.countryId)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground tabular-nums">{co.color}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1.5">
+                          {co.partyIds.map((pid) => {
+                            const p = partyById(pid);
+                            if (!p) return null;
+                            return (
+                              <Badge key={pid} variant="outline" className="gap-1.5">
+                                <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
+                                {p.acronym}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Candidates (one row per candidacy) */}
+        <TabsContent value="candidates">
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("field.name")}</TableHead>
+                    <TableHead>{t("field.party")}</TableHead>
+                    <TableHead>{t("field.election")}</TableHead>
+                    <TableHead>{t("field.district")}</TableHead>
+                    <TableHead className="text-end">{t("field.ballot")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {candidacies.map((cy) => {
+                    const cand = candidateById(cy.candidateId);
+                    const p = partyById(cy.partyId);
+                    const con = constituencyById(cy.constituencyId);
+                    const el = electionById(cy.electionId);
+                    return (
+                      <TableRow key={cy.id}>
+                        <TableCell className="font-medium">
+                          <span className="me-2 text-lg">{cand?.photo}</span>
+                          {cand ? L(cand.name, cand.nameAr) : cy.candidateId}
+                        </TableCell>
+                        <TableCell>
+                          {p ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+                              {p.acronym}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">{t("value.independent")}</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{el ? t(`type.${el.type}`) : ""}</TableCell>
+                        <TableCell>
+                          {con ? L(con.name, con.nameAr) : <span className="text-muted-foreground">{t("value.nationalList")}</span>}
+                        </TableCell>
+                        <TableCell className="text-end tabular-nums">{cy.ballotPosition}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Constituencies (scoped to election) */}
         <TabsContent value="constituencies">
           <Card>
             <CardContent className="p-0">
@@ -247,22 +335,37 @@ export default function SetupPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("field.district")}</TableHead>
-                    <TableHead>{t("field.country")}</TableHead>
+                    <TableHead>{t("field.election")}</TableHead>
                     <TableHead>{t("field.region")}</TableHead>
                     <TableHead className="text-end">{t("field.seats")}</TableHead>
                     <TableHead className="text-end">{t("field.voters")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {constituencies.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-medium">{c.name}</TableCell>
-                      <TableCell>{countryName(c.countryId)}</TableCell>
-                      <TableCell className="text-muted-foreground">{c.region}</TableCell>
-                      <TableCell className="text-end tabular-nums">{c.seats}</TableCell>
-                      <TableCell className="text-end tabular-nums">{nf.format(c.registeredVoters)}</TableCell>
-                    </TableRow>
-                  ))}
+                  {constituencies.map((c) => {
+                    const el = electionById(c.electionId);
+                    const parent = constituencyById(c.parentRegionId);
+                    return (
+                      <TableRow key={c.id}>
+                        <TableCell className="font-medium">{L(c.name, c.nameAr)}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {el ? `${countryLabel(el.countryId)} · ${t(`type.${el.type}`)}` : c.electionId}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {parent ? L(parent.name, parent.nameAr) : "—"}
+                        </TableCell>
+                        <TableCell className="text-end">
+                          <span className="inline-flex items-center gap-2">
+                            <Badge variant="outline" className="font-normal">
+                              {c.seats > 1 ? t("value.multiMember") : t("value.singleMember")}
+                            </Badge>
+                            <span className="tabular-nums">{c.seats}</span>
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-end tabular-nums">{nf.format(c.registeredVoters)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>

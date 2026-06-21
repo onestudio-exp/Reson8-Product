@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ORA Architecture: From Intelligence to On-Air</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      padding: 48px 40px 40px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      margin-bottom: 44px;
+    }
+
+    .header h1 {
+      font-size: 30px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #64748b;
+      font-weight: 400;
+    }
+
+    /* ── MAIN FLOW ── */
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      max-width: 1280px;
+      margin: 0 auto 32px;
+    }
+
+    /* ── ARROW ── */
+    .arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 52px;
+      position: relative;
+    }
+
+    .arrow-line {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .arrow-line::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 12px;
+      height: 2.5px;
+      background: #3b82f6;
+      transform: translateY(-50%);
+    }
+
+    .arrow-line::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 13px solid #3b82f6;
+    }
+
+    /* ── CARD BASE ── */
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05);
+      min-width: 0;
+    }
+
+    /* Card border colors */
+    .card-1 { border: 2px solid #3b82f6; }
+    .card-2 { border: 2px solid #6366f1; }
+    .card-3 { border: 2px solid #0891b2; }
+    .card-4 { border: 2px solid #059669; }
+    .card-5 { border: 2px solid #7c3aed; flex: 0 0 150px; }
+
+    /* ── NUMBER BADGE ── */
+    .num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 14px;
+      flex-shrink: 0;
+    }
+
+    .card-1 .num { background: #3b82f6; }
+    .card-2 .num { background: #6366f1; }
+    .card-3 .num { background: #0891b2; }
+    .card-4 .num { background: #059669; }
+
+    /* ── ICON ── */
+    .icon-wrap {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .card-1 .icon-wrap { background: #eff6ff; }
+    .card-2 .icon-wrap { background: #eef2ff; }
+    .card-3 .icon-wrap { background: #ecfeff; }
+    .card-4 .icon-wrap { background: #ecfdf5; }
+    .card-5 .icon-wrap { background: #f5f3ff; }
+
+    /* ── CARD TITLE ── */
+    .card-title {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+
+    .card-1 .card-title { color: #2563eb; }
+    .card-2 .card-title { color: #4f46e5; }
+    .card-3 .card-title { color: #0e7490; }
+    .card-4 .card-title { color: #047857; }
+    .card-5 .card-title { color: #6d28d9; }
+
+    .card-subtitle {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .card-divider {
+      width: 40px;
+      height: 2.5px;
+      border-radius: 2px;
+      margin: 0 auto 14px;
+    }
+
+    .card-1 .card-divider { background: #3b82f6; }
+    .card-2 .card-divider { background: #6366f1; }
+    .card-3 .card-divider { background: #0891b2; }
+    .card-4 .card-divider { background: #059669; }
+    .card-5 .card-divider { background: #7c3aed; }
+
+    /* ── CARD BODY TEXT ── */
+    .card-body {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.65;
+      text-align: center;
+    }
+
+    /* ── RESON8 MODULES ── */
+    .modules-box {
+      border: 1.5px dashed #0891b2;
+      border-radius: 10px;
+      padding: 12px 10px 8px;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .module-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 4px;
+      background: #f0fdfe;
+      border-radius: 8px;
+      border: 1px solid #cffafe;
+    }
+
+    .module-chip .m-icon { font-size: 18px; }
+    .module-chip .m-label {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #0e7490;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .modules-note {
+      font-size: 10px;
+      color: #64748b;
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* ── ORA PIPELINE ── */
+    .pipeline {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .pipe-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .pipe-icon { font-size: 15px; flex-shrink: 0; }
+
+    .pipe-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #065f46;
+    }
+
+    .pipe-desc {
+      font-size: 10.5px;
+      color: #6b7280;
+      margin-top: 1px;
+    }
+
+    .pipe-connector {
+      display: flex;
+      justify-content: center;
+    }
+
+    .pipe-connector::before {
+      content: '↓';
+      font-size: 12px;
+      color: #059669;
+      font-weight: 700;
+    }
+
+    /* ── OUTPUT CARD ── */
+    .output-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #f5f3ff;
+      border: 1px solid #ddd6fe;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #6d28d9;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+    }
+
+    .output-screen {
+      width: 90px;
+      height: 60px;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+    }
+
+    .live-dot {
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 8px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #ef4444;
+      border-radius: 50%;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .screen-icon { font-size: 28px; }
+
+    /* ── FOOTER ── */
+    .footer {
+      max-width: 1280px;
+      margin: 0 auto;
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .footer-brand-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+
+    .footer-brand-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .footer-divider {
+      width: 1px;
+      height: 24px;
+      background: #e2e8f0;
+      flex-shrink: 0;
+    }
+
+    .footer-legend {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 2.5px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .l1 { background: #3b82f6; }
+    .l2 { background: #6366f1; }
+    .l3 { background: #0891b2; }
+    .l4 { background: #059669; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>ORA Architecture: From Intelligence to On-Air</h1>
+    <p>End-to-End AI-Powered Broadcast Intelligence and Content Workflow</p>
+  </div>
+
+  <!-- MAIN FLOW -->
+  <div class="flow">
+
+    <!-- 1. SENTRA ENGINE -->
+    <div class="card card-1">
+      <div class="num">1</div>
+      <div class="icon-wrap">🧠</div>
+      <div class="card-title">Sentra Engine</div>
+      <div class="card-subtitle">AI Intelligence Layer / Brain</div>
+      <div class="card-divider"></div>
+      <div class="card-body">
+        Processing, classification,<br/>
+        summarization, sentiment,<br/>
+        narratives, entity extraction,<br/>
+        influence mapping,<br/>
+        risk scoring, prediction support,<br/>
+        multilingual NLP (200+ languages)
+      </div>
+    </div>
+
+    <!-- ARROW 1→2 -->
+    <div class="arrow"><div class="arrow-line"></div></div>
+
+    <!-- 2. SENTRA PLATFORM -->
+    <div class="card card-2">
+      <div class="num">2</div>
+      <div class="icon-wrap">📊</div>
+      <div class="card-title">Sentra Platform</div>
+      <div class="card-subtitle">Intelligence Platform</div>
+      <div class="card-divider"></div>
+      <div class="card-body">
+        Monitoring, dashboards,<br/>
+        alerts & early warning,<br/>
+        entity & case intelligence,<br/>
+        war room, narratives,<br/>
+        AI reports & briefs,<br/>
+        collaborative workspace
+      </div>
+    </div>
+
+    <!-- ARROW 2→3 -->
+    <div class="arrow"><div class="arrow-line"></div></div>
+
+    <!-- 3. RESON8 PLATFORM -->
+    <div class="card card-3">
+      <div class="num">3</div>
+      <div class="icon-wrap">📡</div>
+      <div class="card-title">Reson8 Platform</div>
+      <div class="card-subtitle">Broadcast Intelligence Platform<br/>Shared intelligence platform for live media coverage</div>
+      <div class="card-divider"></div>
+
+      <div class="modules-box">
+        <div class="modules-grid">
+          <div class="module-chip">
+            <span class="m-icon">🗳️</span>
+            <span class="m-label">Elections</span>
+          </div>
+          <div class="module-chip">
+            <span class="m-icon">📈</span>
+            <span class="m-label">Markets</span>
+          </div>
+          <div class="module-chip">
+            <span class="m-icon">🌤️</span>
+            <span class="m-label">Weather</span>
+          </div>
+          <div class="module-chip">
+            <span class="m-icon">⚽</span>
+            <span class="m-label">Sports</span>
+          </div>
+          <div class="module-chip">
+            <span class="m-icon">🚨</span>
+            <span class="m-label">Breaking News</span>
+          </div>
+        </div>
+        <div class="modules-note">Elections is one module within the wider Reson8 platform.</div>
+      </div>
+    </div>
+
+    <!-- ARROW 3→4 -->
+    <div class="arrow"><div class="arrow-line"></div></div>
+
+    <!-- 4. ORA SYSTEM -->
+    <div class="card card-4">
+      <div class="num">4</div>
+      <div class="icon-wrap">🎬</div>
+      <div class="card-title">ORA System</div>
+      <div class="card-subtitle">On-Air Content &<br/>Broadcast Workflow</div>
+      <div class="card-divider"></div>
+
+      <div class="pipeline">
+        <div class="pipe-step">
+          <span class="pipe-icon">📥</span>
+          <div>
+            <div class="pipe-label">Ingest</div>
+            <div class="pipe-desc">AP, Reuters, Edison, SOS feeds</div>
+          </div>
+        </div>
+        <div class="pipe-connector"></div>
+        <div class="pipe-step">
+          <span class="pipe-icon">🔍</span>
+          <div>
+            <div class="pipe-label">Contextualize</div>
+            <div class="pipe-desc">Sentra AI enrichment & translation</div>
+          </div>
+        </div>
+        <div class="pipe-connector"></div>
+        <div class="pipe-step">
+          <span class="pipe-icon">✍️</span>
+          <div>
+            <div class="pipe-label">Generate</div>
+            <div class="pipe-desc">Graphics, narratives, talking points</div>
+          </div>
+        </div>
+        <div class="pipe-connector"></div>
+        <div class="pipe-step">
+          <span class="pipe-icon">✅</span>
+          <div>
+            <div class="pipe-label">Review</div>
+            <div class="pipe-desc">Producer → Editor approval chain</div>
+          </div>
+        </div>
+        <div class="pipe-connector"></div>
+        <div class="pipe-step">
+          <span class="pipe-icon">📺</span>
+          <div>
+            <div class="pipe-label">Take to Air</div>
+            <div class="pipe-desc">Vizrt fire — ≤3s wire-to-on-air</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARROW 4→5 -->
+    <div class="arrow"><div class="arrow-line"></div></div>
+
+    <!-- 5. ON-AIR OUTPUT -->
+    <div class="card card-5">
+      <div class="output-badge">⭐ LIVE</div>
+      <div class="output-screen">
+        <div class="live-dot">LIVE</div>
+        <span class="screen-icon">📺</span>
+      </div>
+      <div class="card-title">On-Air Output</div>
+      <div class="card-divider"></div>
+      <div class="card-body">
+        Editor-approved,<br/>
+        multilingual,<br/>
+        broadcast-ready<br/>
+        content
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-brand">
+      <div class="footer-brand-icon">⚡</div>
+      <div class="footer-brand-text">ORA is powered by Sentra AI</div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-legend">
+      <div class="legend-item">
+        <div class="legend-line l1"></div>
+        Sentra Engine powers intelligence
+      </div>
+      <div class="legend-item">
+        <div class="legend-line l2"></div>
+        Sentra Platform operationalizes it
+      </div>
+      <div class="legend-item">
+        <div class="legend-line l3"></div>
+        Reson8 scales and distributes it
+      </div>
+      <div class="legend-item">
+        <div class="legend-line l4"></div>
+        ORA delivers it on air
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
